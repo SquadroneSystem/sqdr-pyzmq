@@ -1,0 +1,5 @@
+sqdr-pyzmq (24.0.1-1) unstable; urgency=medium
+
+  * Initial release.
+
+ -- Titus Senez <titus.senez@squadrone-system.com>  Fri, 23 Dec 2022 09:24:19 +0100
