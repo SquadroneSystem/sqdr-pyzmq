@@ -1,3 +1,5 @@
+@Library('sqdr-jenkins-lib') _
+
 env.setProperty('GIT_REPOSITORY', 'sqdr-pyzmq')
 
 Map nodes = [
@@ -6,6 +8,7 @@ Map nodes = [
 ]
 
 Map tasks = [:]
+build_dirs = ['.']
 
 // for each example: https://gist.github.com/oifland/ab56226d5f0375103141b5fbd7807398
 nodes.each { build_arch, label ->
@@ -32,23 +35,9 @@ nodes.each { build_arch, label ->
                     env.setProperty('BUILD_ARCH', build_arch)
                 }
 
-                stage('Create deb packages') {
-                    if (env.BRANCH_NAME == 'main') {
-                        echo "Building main branch"
-                        sh "PATH=/opt/sqdr/ssap/bin:$PATH \
-                            jenkins-multi-venv.sh \
-                                --build $BUILD_ARCH"
-                    } else {
-                        echo "Building test ${env.BRANCH_NAME}, packages will not be uploaded to apt repository"
-                        sh "SSAP_JENKINS_DISABLE_DPUT=1 \
-                            PATH=/opt/sqdr/ssap/bin:$PATH \
-                            jenkins-multi-venv.sh \
-                                --build $BUILD_ARCH"
-                    }
-                }
+                sqdrBuild.debianPackages(build_arch: build_arch, build_dirs: build_dirs, dput_to_apt: env.BRANCH_NAME == 'main')
 
-                stage('Archive build') {
-                    echo "Archive artifacts:"
+                stage("Archive debian packages") {
                     archiveArtifacts artifacts: "**/*jenkins${BUILD_NUMBER}*.deb", followSymlinks: true
                 }
             } catch (e) {
