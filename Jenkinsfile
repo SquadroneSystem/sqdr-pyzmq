@@ -1,16 +1,19 @@
 @Library('sqdr-jenkins-lib') _
 
-env.setProperty('GIT_REPOSITORY', 'sqdr-pyzmq')
-
+git_repository = "sqdr-pyzmq"
+github_credentials_id = "github_personnal_access_token"
+git_credentials_id = "ci-squadrone"
+build_dirs = ['.']
 Map nodes = [
     "amd64/ubuntu/focal": "ec2-fleet-amd64",
-    "armhf/raspbian/buster": "ec2-fleet-arm64"
+    "arm64/ubuntu/focal": "ec2-fleet-arm64",
+    "armhf/raspbian/buster": "ec2-fleet-arm64",
+    "arm64/ubuntu/jammy": "ec2-fleet-arm64",
+    "amd64/ubuntu/jammy": "ec2-fleet-amd64",
+    "armhf/rapsbian/bullseye": "ec2-fleet-arm64"
 ]
 
 Map tasks = [:]
-build_dirs = ['.']
-
-// for each example: https://gist.github.com/oifland/ab56226d5f0375103141b5fbd7807398
 nodes.each { build_arch, label ->
     tasks[build_arch] = {
         node(label) {
@@ -20,19 +23,11 @@ nodes.each { build_arch, label ->
                         env.setProperty('BRANCH_NAME', env.CHANGE_BRANCH)
                     }
                     cleanWs()
-                    echo "Checking out ${env.GIT_REPOSITORY}"
-                    checkout([$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false], [$class: 'CloneOption', noTags: false, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'ci-squadrone', url: "git@github.com:SquadroneSystem/${env.GIT_REPOSITORY}.git"]]])
+                    checkout([$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false], [$class: 'CloneOption', noTags: false, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: git_credentials_id, url: "git@github.com:SquadroneSystem/${git_repository}.git"]]])
                 }
 
-                stage('Environment Initialization') {
-                    def git_commit = sh (script: 'git rev-parse HEAD', returnStdout: true).trim()
-                    env.setProperty('GIT_COMMIT', git_commit)
-                    env.setProperty('ACCESS_TOKEN', "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")
-                    stage('Notify GitHub build start') {
-                        sh "ci/notify_github $GIT_REPOSITORY $GIT_COMMIT $ACCESS_TOKEN $BUILD_URL pending"
-                    }
-
-                    env.setProperty('BUILD_ARCH', build_arch)
+                stage('Notify GitHub build start') {
+                    notifyGithub.buildStatus(arch: build_arch, status: "pending")
                 }
 
                 sqdrBuild.debianPackages(build_arch: build_arch, build_dirs: build_dirs, dput_to_apt: env.BRANCH_NAME == 'main')
@@ -53,10 +48,10 @@ nodes.each { build_arch, label ->
 
                     if (currentResult == 'SUCCESS') {
                         echo "Finished building deb packages"
-                        sh "ci/notify_github $GIT_REPOSITORY $GIT_COMMIT $ACCESS_TOKEN $BUILD_URL success"
+                        notifyGithub.buildStatus(arch: build_arch, status: "success")
                     } else {
                         echo "Failed to build deb packages"
-                        sh "ci/notify_github $GIT_REPOSITORY $GIT_COMMIT $ACCESS_TOKEN $BUILD_URL failure"
+                        notifyGithub.buildStatus(arch: build_arch, status: "failure")
                     }
 
                     def previousResult = currentBuild.getPreviousBuild()?.result
