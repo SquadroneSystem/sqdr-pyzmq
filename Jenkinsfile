@@ -6,10 +6,14 @@ git_credentials_id = "ci-squadrone"
 build_dirs = ['.']
 Map nodes = [
     "amd64/ubuntu/focal": "ec2-fleet-amd64",
-    "arm64/ubuntu/focal": "ec2-fleet-arm64",
-    "armhf/raspbian/buster": "ec2-fleet-arm64",
-    "arm64/ubuntu/jammy": "ec2-fleet-arm64",
     "amd64/ubuntu/jammy": "ec2-fleet-amd64",
+    "amd64/debian/buster": "ec2-fleet-amd64",
+    "amd64/debian/bullseye": "ec2-fleet-amd64",
+    "arm64/ubuntu/focal": "ec2-fleet-arm64",
+    "arm64/ubuntu/jammy": "ec2-fleet-arm64",
+    "arm64/debian/buster": "ec2-fleet-arm64",
+    "arm64/debian/bullseye": "ec2-fleet-arm64",
+    "armhf/raspbian/buster": "ec2-fleet-arm64",
     "armhf/rapsbian/bullseye": "ec2-fleet-arm64"
 ]
 
