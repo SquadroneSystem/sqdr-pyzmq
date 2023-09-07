@@ -34,7 +34,11 @@ nodes.each { build_arch, label ->
                     notifyGithub.buildStatus(arch: build_arch, status: "pending")
                 }
 
-                sqdrBuild.debianPackages(build_arch: build_arch, build_dirs: build_dirs, dput_to_apt: env.BRANCH_NAME == 'main')
+                sqdrBuild.debianPackages(build_arch: build_arch, build_dirs: build_dirs)
+
+                if (env.BRANCH_NAME == 'main') {
+                    sqdrDeploy.debianPackages(build_arch: build_arch)
+                }
 
                 stage("Archive debian packages") {
                     archiveArtifacts artifacts: "**/*jenkins${BUILD_NUMBER}*.deb", followSymlinks: true
