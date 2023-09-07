@@ -39,3 +39,8 @@ htmlcov
 coverage.xml
 env
 .eggs
+
+# vim
+.*.swp
+.*.swo
+
