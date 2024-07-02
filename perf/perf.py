@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 #
 #  Some original test code Copyright (c) 2007-2010 iMatix Corporation,
-#  Used under LGPLv3
+#  Used under MPL-2.0
 
 import argparse
 import time
@@ -22,7 +22,6 @@ zmq.COPY_THRESHOLD = 0
 
 
 def parse_args(argv=None):
-
     parser = argparse.ArgumentParser(description='Run a zmq performance test')
     parser.add_argument(
         '-p',
@@ -82,11 +81,11 @@ def latency_echo(url, count, size=None, poll=False, copy=True, quiet=False):
 
     for i in range(count + 1):
         if poll:
-            res = p.poll()
+            p.poll()
         msg = s.recv(block, copy=copy)
 
         if poll:
-            res = p.poll()
+            p.poll()
         s.send(msg, block, copy=copy)
 
     msg = s.recv()
@@ -219,10 +218,10 @@ def throughput(url, count, size, poll=False, copy=True, quiet=False):
     if not quiet:
         print("message size   : %8i     [B]" % size)
         print("message count  : %8i     [msgs]" % count)
-        print("send only      : %8.0f     [msg/s]" % send_throughput)
-        print("mean throughput: %8.0f     [msg/s]" % throughput)
-        print("mean throughput: %12.3f [Mb/s]" % megabits)
-        print("test time      : %12.3f [s]" % elapsed)
+        print(f"send only      : {send_throughput:8.0f}     [msg/s]")
+        print(f"mean throughput: {throughput:8.0f}     [msg/s]")
+        print(f"mean throughput: {megabits:12.3f} [Mb/s]")
+        print(f"test time      : {elapsed:12.3f} [s]")
     ctx.destroy()
     return (send_throughput, throughput)
 

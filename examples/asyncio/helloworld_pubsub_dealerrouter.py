@@ -48,8 +48,8 @@ class HelloWorldPrinter:
 class HelloWorldMessage:
     def __init__(self, url: str = '127.0.0.1', port: int = 5555):
         # get ZeroMQ version
-        print("Current libzmq version is %s" % zmq.zmq_version())
-        print("Current  pyzmq version is %s" % zmq.__version__)
+        print(f"Current libzmq version is {zmq.zmq_version()}")
+        print(f"Current  pyzmq version is {zmq.__version__}")
 
         self.url = f"tcp://{url}:{port}"
         # pub/sub and dealer/router
@@ -59,7 +59,6 @@ class HelloWorldMessage:
         self.hello_world = HelloWorld()
 
     def main(self) -> None:
-
         # activate publishers / subscribers
         asyncio.run(
             asyncio.wait(
@@ -196,11 +195,7 @@ class HelloWorldMessage:
                 )
 
                 self.hello_world.change_language()
-                print(
-                    "Changed language! New language is: {}\n".format(
-                        self.hello_world.lang
-                    )
-                )
+                print(f"Changed language! New language is: {self.hello_world.lang}\n")
 
         except Exception as e:
             print("Error with sub world")

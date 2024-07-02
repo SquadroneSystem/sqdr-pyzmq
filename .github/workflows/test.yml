@@ -7,13 +7,24 @@ on:
       - "pre-commit-ci-update-config"
     paths-ignore:
       - "docs/**"
+      - "tools/**"
+      - ".circleci/**"
+      - ".github/workflows/*"
+      - "!.github/workflows/test.yml"
   pull_request:
     paths-ignore:
       - "docs/**"
+      - "tools/**"
+      - ".circleci/**"
+      - ".github/workflows/*"
+      - "!.github/workflows/test.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   FORCE_COLOR: "1"
-  PYZMQ_CYTHON_COVERAGE: "1"
   # only affects Windows, but easiest to set here for now
   SETUPTOOLS_ENABLE_FEATURES: "legacy-editable"
 
@@ -21,91 +32,94 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    continue-on-error: ${{ matrix.zmq == 'head' }}
 
     env:
-      MACOSX_DEPLOYMENT_TARGET: "10.14"
+      MACOSX_DEPLOYMENT_TARGET: "11.7"
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
-          - os: macos-11
-            python: 3.6
+          - os: macos-13
+            python: 3.7
 
-          - os: macos-11
-            python: "3.10"
+          - os: macos-14
+            python: 3.12
             zmq: bundled
 
-          - os: macos-11
-            python: pypy-3.8
+          - os: macos-13
+            python: pypy-3.9
             zmq: bundled
-
-          - os: ubuntu-18.04
-            python: 3.6
-            zmq: bundled
-            tornado: none
-
-          - os: ubuntu-20.04
-            python: pypy-3.8
-            zmq: bundled
-
-          - os: ubuntu-20.04
-            python: pypy-3.7
 
           - os: ubuntu-20.04
             python: 3.7
+            zmq: bundled
+            tornado: none
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
+            python: pypy-3.9
+            zmq: bundled
+
+          - os: ubuntu-22.04
+            python: pypy-3.7
+
+          - os: ubuntu-22.04
             python: 3.9
             tornado: head
 
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             python: "3.10"
 
-          - os: ubuntu-20.04
-            python: "3.11.0-rc.1"
+          - os: ubuntu-22.04
+            python: "3.11"
 
-          - os: ubuntu-20.04
-            python: 3.8
+          - os: ubuntu-22.04
+            python: "3.8"
             zmq: head
 
-          - os: windows-2019
-            python: 3.6
+          - os: ubuntu-22.04
+            python: "3.12"
+
+          - os: windows-2022
+            python: "3.7"
             arch: x86
 
-          - os: windows-2019
-            python: 3.9
+          - os: windows-2022
+            python: "3.9"
             arch: x64
 
-          - os: windows-2019
-            python: "3.10"
+          - os: windows-2022
+            python: "3.11"
             arch: x64
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: setup python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch || 'x64' }}
+          # allows us to use '3.12' and get '-dev' while we wait
+          allow-prereleases: true
+          cache: pip
 
       - name: setup coverage
-        if: startsWith(matrix.python, 'pypy')
+        if: startsWith(matrix.python, 'pypy') || startsWith(matrix.python, '3.12')
         run: |
-          grep -v plugins .coveragerc > .coveragerc-pypy
-          mv .coveragerc-pypy .coveragerc
+          grep -v plugins .coveragerc > .coveragerc-save
+          mv .coveragerc-save .coveragerc
+
+      # - name: enable Cython coverage
+      #   if: "! (startsWith(matrix.python, 'pypy') || startsWith(matrix.python, '3.12'))"
+      #   run: |
+      #     echo "PYZMQ_CYTHON_COVERAGE=1" >> "$GITHUB_ENV"
 
       - name: install dependencies
         run: |
           pip install --upgrade pip wheel
           pip install -r test-requirements.txt
-
-      - name: install cython
-        if: "! startsWith(matrix.python, 'pypy')"
-        run: |
-          pip install ${{ matrix.cython || 'cython' }}
-          python setup.py cython
 
       - name: remove tornado
         if: matrix.tornado == 'none'
@@ -125,16 +139,6 @@ jobs:
       - name: show environment
         run: |
           pip freeze
-
-      # preserve pip cache to speed up installation
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          # Look to see if there is a cache hit for the corresponding requirements file
-          key: ${{ runner.os }}-pip-${{ runner.python }}-${{ hashFiles('*requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: install mac dependencies
         if: startsWith(matrix.os, 'mac') && matrix.zmq != 'bundled'
@@ -178,7 +182,7 @@ jobs:
 
       - name: run tests
         run: |
-          python -m pytest --maxfail 2 --cov zmq -m "not wheel and not new_console" -v zmq/tests
+          pytest --maxfail 2 --cov zmq -m "not wheel and not new_console" -v
 
       - name: upload coverage
         run: codecov

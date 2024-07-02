@@ -106,7 +106,7 @@ def main():
 
     test = args.test
     full_name = full_names[test]
-    print("Running %s test" % full_name)
+    print(f"Running {full_name} test")
     fname = test + '.pickle'
     import pandas as pd
 
@@ -153,7 +153,6 @@ def main():
                 t_min=t_min,
                 t_max=t_max,
             ):
-
                 data.append(
                     (size, count, copy, poll, transport) + result,
                 )

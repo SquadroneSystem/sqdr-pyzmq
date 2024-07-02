@@ -2,6 +2,7 @@
 .vagrant
 *.pyc
 zmq/backend/cython/*.c
+zmq/backend/cffi/*.o
 zmq/devices/*.c
 zmq/utils/*.json
 zmq/include/*.h
@@ -40,7 +41,15 @@ coverage.xml
 env
 .eggs
 
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+_deps
+/Makefile
+_src
+licenses
+.virtual_documents
+
 # vim
 .*.swp
 .*.swo
-

@@ -14,7 +14,7 @@ catch 'weather'.
 #  Copyright (c) 2010 Brian Granger, Fernando Perez
 #
 #  Distributed under the terms of the New BSD License.  The full license is in
-#  the file COPYING.BSD, distributed as part of this software.
+#  the file LICENSE.BSD, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
 import sys
@@ -38,7 +38,7 @@ def main() -> None:
         print("Receiving messages on ALL topics...")
         s.setsockopt(zmq.SUBSCRIBE, b'')
     else:
-        print("Receiving messages on topics: %s ..." % topics)
+        print(f"Receiving messages on topics: {topics} ...")
         for t in topics:
             s.setsockopt(zmq.SUBSCRIBE, t.encode('utf-8'))
     print

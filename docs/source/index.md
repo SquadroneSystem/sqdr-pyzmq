@@ -11,8 +11,7 @@ an overview of what the ØMQ API looks like in Python. For information on how to
 ØMQ in general, see the many examples in the excellent [ØMQ Guide], all of which
 have a version in Python.
 
-PyZMQ works with Python 3 (≥ 3.3), and Python 2.7, with no transformations or 2to3,
-as well as PyPy (at least 2.0 beta), via CFFI.
+PyZMQ works with Python 3 (≥ 3.7), as well as PyPy via CFFI.
 
 Please don't hesitate to report pyzmq-specific issues to our [tracker] on GitHub.
 General questions about ØMQ are better sent to the [ØMQ tracker] or [mailing list].
@@ -32,7 +31,7 @@ as they never received a stable release.
 
 Binary distributions (wheels on [PyPI](https://pypi.org/project/pyzmq/)) of PyZMQ ship with
 the stable version of libzmq at the time of release, built with default configuration,
-and include CURVE support provided by tweetnacl.
+and include CURVE support provided by libsodium.
 For pyzmq-{{ release }}, this is {{ target_libzmq }}.
 
 # Using PyZMQ
@@ -46,10 +45,9 @@ You can also check out the [examples in the pyzmq repo](https://github.com/zerom
 ---
 maxdepth: 2
 ---
-api/index.rst
-changelog.rst
-howto/index.rst
-notes/index.rst
+api/index
+changelog
+howto/index
 ```
 
 # Indices and tables

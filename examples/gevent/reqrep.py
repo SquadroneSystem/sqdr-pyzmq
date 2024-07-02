@@ -1,6 +1,7 @@
 """
 Complex example which is a combination of the rr* examples from the zguide.
 """
+
 from gevent import spawn
 
 import zmq.green as zmq
@@ -25,6 +26,7 @@ server = spawn(serve, socket)
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5559")
+
 
 #  Do 10 requests, waiting each time for a response
 def client():

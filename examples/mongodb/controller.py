@@ -2,14 +2,14 @@
 #  Copyright (c) 2010 Justin Riley
 #
 #  Distributed under the terms of the New BSD License.  The full license is in
-#  the file COPYING.BSD, distributed as part of this software.
+#  the file LICENSE.BSD, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
 import json
 from typing import Any, Dict, Optional, Union
 
 import pymongo
-import pymongo.json_util
+from bson import json_util
 
 import zmq
 
@@ -32,12 +32,12 @@ class MongoZMQ:
         self._bind_addr = bind_addr
         self._db_name = db_name
         self._table_name = table_name
-        self._conn = pymongo.Connection()
+        self._conn: pymongo.MongoClient = pymongo.MongoClient()
         self._db = self._conn[self._db_name]
         self._table = self._db[self._table_name]
 
     def _doc_to_json(self, doc: Any) -> str:
-        return json.dumps(doc, default=pymongo.json_util.default)
+        return json.dumps(doc, default=json_util.default)
 
     def add_document(self, doc: Dict) -> Optional[str]:
         """
@@ -47,19 +47,19 @@ class MongoZMQ:
         try:
             self._table.insert(doc)
         except Exception as e:
-            return 'Error: %s' % e
+            return f'Error: {e}'
         return None
 
-    def get_document_by_keys(self, keys: Dict[str, Any]) -> Union[Dict, str]:
+    def get_document_by_keys(self, keys: Dict[str, Any]) -> Union[Dict, str, None]:
         """
         Attempts to return a single document from database table that matches
         each key/value in keys dictionary.
         """
-        print('attempting to retrieve document using keys: %s' % keys)
+        print(f'attempting to retrieve document using keys: {keys}')
         try:
             return self._table.find_one(keys)
         except Exception as e:
-            return 'Error: %s' % e
+            return f'Error: {e}'
 
     def start(self) -> None:
         context = zmq.Context()
@@ -69,7 +69,7 @@ class MongoZMQ:
             msg = socket.recv_multipart()
             print("Received msg: ", msg)
             if len(msg) != 3:
-                error_msg = 'invalid message received: %s' % msg
+                error_msg = f'invalid message received: {msg}'
                 print(error_msg)
                 reply = [msg[0], error_msg]
                 socket.send_multipart(reply)
