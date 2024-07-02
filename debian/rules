@@ -2,17 +2,25 @@
 # See debhelper(7) (uncomment to enable)
 # output every command that modifies files on the build system.
 #export DH_VERBOSE = 1
-
-# Skip tests as they fail without picamera
-export PYBUILD_DISABLE=test
 export ZMQ_PREFIX=/opt/sqdr
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild
+	dh $@
 
-# https://github.com/pypa/setuptools/issues/2956
+override_dh_auto_configure:
+
+# Run the build line needed by pyzmq in a py venv
+override_dh_auto_build:
+	python3 -m venv venv
+	venv/bin/pip install --upgrade pip
+	venv/bin/pip install --upgrade pytoml cmake
+	ZMQ_PREFIX=/opt/sqdr venv/bin/pip install . --no-binary pyzmq
+
+# Copy the generated package in the install directory
 override_dh_auto_install:
-	export SETUPTOOLS_USE_DISTUTILS=stdlib && dh_auto_install
+	mkdir -p debian/sqdr-pyzmq/usr/lib/python3/dist-packages
+	find ./venv/lib -regex ".*python3.*/site-packages/.*zmq[^/]*" -type d -exec cp -r {} debian/sqdr-pyzmq/usr/lib/python3/dist-packages/ \;
 
-override_dh_installinit:
-	true
+# needed as it couldn't find libzmq.so.5...
+override_dh_shlibdeps:
+	dh_shlibdeps -l/opt/sqdr/lib
