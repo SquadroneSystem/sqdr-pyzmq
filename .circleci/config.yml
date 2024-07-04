@@ -10,12 +10,13 @@ jobs:
         default: ""
 
     machine:
-      image: ubuntu-2004:2022.04.1
+      image: ubuntu-2204:2023.07.1
     resource_class: arm.medium
 
     environment:
       CIBW_SKIP: "<< parameters.skip >>"
       CIBW_BUILD: "<< parameters.build >>"
+      CIBW_PRERELEASE_PYTHONS: "1"
 
     steps:
       - checkout
@@ -31,13 +32,6 @@ jobs:
             python3 -m pip freeze
 
       - run:
-          name: Cython
-          # This assumes pytest is installed via the install-package step above
-          command: |
-            python3 setup.py fetch_libzmq
-            python3 setup.py cython
-
-      - run:
           name: list wheels
           command: |
             python3 -m cibuildwheel . --print-build-identifiers
@@ -49,20 +43,6 @@ jobs:
 
       - store_artifacts:
           path: wheelhouse/
-
-      - when:
-          condition:
-            matches:
-              pattern: ".+"
-              value: "<< pipeline.git.tag >>"
-          steps:
-            - run:
-                environment:
-                  TWINE_NONINTERACTIVE: "1"
-                  TWINE_USERNAME: __token__
-                command: |
-                  python3 -m pip install twine
-                  python3 -m twine upload --skip-existing wheelhouse/*
 
 workflows:
   wheels: # This is the name of the workflow, feel free to change it to better match your workflow.

@@ -6,24 +6,21 @@ Just import things
 import os
 import platform
 import sys
+from fnmatch import fnmatch
 
 import pytest
+
+try:
+    from importlib.metadata import distribution
+except ImportError:
+    from importlib_metadata import distribution
 
 
 @pytest.mark.parametrize("feature", ["curve", "ipc"])
 def test_has(feature):
     import zmq
 
-    if (
-        feature == 'ipc'
-        and sys.platform == 'win32'
-        and platform.python_implementation() == "CPython"
-    ):
-        # Windows wheels lack IPC
-        # pending release with https://github.com/zeromq/libzmq/pull/4422
-        assert not zmq.has(feature)
-    else:
-        assert zmq.has(feature)
+    assert zmq.has(feature)
 
 
 def test_simple_socket():
@@ -52,19 +49,33 @@ def test_bundle_msvcp():
         )
     print(dlls)
     # Is concrt140 needed? delvewheel doesn't detect it anymore
-    should_bundle = ["msvcp140.dll"]
-    vcruntime = "vcruntime140.dll"
+    # check for vcruntime?
+    should_bundle = ["msvcp140*.dll"]
     shouldnt_bundle = []
-    if platform.python_implementation() == 'PyPy':
-        should_bundle = []
-    elif sys.version_info < (3, 10):
-        shouldnt_bundle.append(vcruntime)
 
-    for dll in shouldnt_bundle:
-        assert dll not in dlls
+    for pattern in shouldnt_bundle:
+        matched = [dll for dll in dlls if fnmatch(dll, pattern)]
+        assert not matched
 
-    for dll in should_bundle:
-        assert dll in dlls
+    for pattern in should_bundle:
+        matched = [dll for dll in dlls if fnmatch(dll, pattern)]
+        assert matched
 
-    assert any(dll.startswith("libzmq") for dll in dlls)
-    assert any(dll.startswith("libsodium") for dll in dlls)
+
+@pytest.mark.parametrize(
+    "license_name",
+    [
+        "LICENSE.md",
+        "LICENSE.zeromq.txt",
+        "LICENSE.libsodium.txt",
+    ],
+)
+def test_license_files(license_name):
+    pyzmq = distribution("pyzmq")
+    license_files = [f for f in pyzmq.files if "licenses" in str(f)]
+    license_file_names = [f.name for f in license_files]
+    assert license_name in license_file_names
+    for license_file in license_files:
+        if license_file.name == license_name:
+            break
+    assert license_file.locate().exists()

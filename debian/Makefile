@@ -63,8 +63,11 @@ _deb_stage_1_env_independent: $(DIRECTORY_WITH_SOURCES) $(UPSTREAM_TARBALL_WITH_
 
 DISTRIB_BUILD=$(shell lsb_release -cs)
 
+LIB_ATA=$(shell ls -R /opt/sqdr/lib)
+
 _deb_stage_2_env_dependent: changelog compat control rules
 	find ./$(DIRECTORY_WITH_SOURCES) -name 'changelog' -exec sed -i "1 s/^\(\S* ([^)]*)\) \S*;/\\1 ${DISTRIB_BUILD};/g" {} \;
+	@echo ${LIB_ATA}
 	cd ./$(DIRECTORY_WITH_SOURCES) && \
 	debuild \
 		--preserve-envvar CCACHE_* \

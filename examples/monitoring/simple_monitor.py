@@ -3,7 +3,7 @@
 # This file is part of pyzmq.
 #
 # Distributed under the terms of the New BSD License. The full
-# license is in the file COPYING.BSD, distributed as part of this
+# license is in the file LICENSE.BSD, distributed as part of this
 # software.
 
 __author__ = 'Guido Goldstein'
@@ -20,7 +20,7 @@ def line() -> None:
     print('-' * 40)
 
 
-print("libzmq-%s" % zmq.zmq_version())
+print(f"libzmq-{zmq.zmq_version()}")
 if zmq.zmq_version_info() < (4, 0):
     raise RuntimeError("monitoring in libzmq version < 4.0 is not supported")
 
