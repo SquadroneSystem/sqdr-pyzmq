@@ -3,6 +3,7 @@
 # output every command that modifies files on the build system.
 #export DH_VERBOSE = 1
 export ZMQ_PREFIX=/opt/sqdr
+export LDFLAGS="-Wl,-rpath,${ZMQ_PREFIX}/lib"
 
 %:
 	dh $@
@@ -14,7 +15,7 @@ override_dh_auto_build:
 	python3 -m venv venv
 	venv/bin/pip install --upgrade pip
 	venv/bin/pip install --upgrade pytoml cmake
-	ZMQ_PREFIX=/opt/sqdr venv/bin/pip install . --no-binary pyzmq
+	venv/bin/pip install . --no-binary pyzmq
 
 # Copy the generated package in the install directory
 override_dh_auto_install:
