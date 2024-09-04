@@ -1,3 +1,9 @@
+sqdr-pyzmq (26.0.3.1-1) stable; urgency=medium
+
+  * Fix CI build
+
+ -- Titus Senez <titus.senez@squadrone-system.com>  Wed, 04 Sep 2024 17:04:30 +0200
+
 sqdr-pyzmq (26.0.3-1) stable; urgency=medium
 
   * Merge upstream
